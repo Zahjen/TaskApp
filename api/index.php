@@ -1,10 +1,10 @@
 <?php
 
-    require 'model/object/list.php';
+    require 'model/object/task.php';
     require 'model/connection/connection.php';
-    require 'model/manager/list-manager.php';
+    require 'model/manager/task-manager.php';
     require 'tools/utils.php';
-    require 'controller/list-controller.php';
+    require 'controller/task-of-list-controller.php';
 
     header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=UTF-8");
@@ -43,6 +43,28 @@
         return [$id, $order];
     }
 
+    function fct($uri_id, $uri_order, $id, $order) {
+        if (!isset($uri_id)) {
+            die('Erreur: Adresse Incorrecte');
+        } else {
+            if (is_numeric($uri_id)) {
+                $id = (int) $uri_id;
+            } else {
+                die('Erreur : Adresse incorrecte');
+            }
+
+            if (isset($uri_order)) {
+                if ($uri_order === "desc") {
+                    $order = strtoupper($uri_order);
+                } else {
+                    die('Erreur : Adresse incorrecte');
+                }
+            }
+        }
+
+        return [$id, $order];
+    }
+
     if (isset($uri[2])) {
         switch ($uri[2]) {
             case "groups":
@@ -72,9 +94,15 @@
                 break;
 
             case "listsOfGroup":
-                $res = directive($uri[3], $id, $order);
+                $res = fct($uri[3], $uri[4], $id, $order);
                 $id = $res[0];
                 $order = $res[1];
+
+                // On récupère le type de requête envoyée, i.e. GET, POST, PUT, DELETE
+                $request_method = $_SERVER["REQUEST_METHOD"];
+
+                // En instanciant la classe ListOfGroupController, et selon la méthode, on executera la requête demandée
+                $directive_controller = new ListOfGroupController($connection, $request_method, $id, $order);
 
                 break;
 
@@ -83,12 +111,24 @@
                 $id = $res[0];
                 $order = $res[1];
 
+                // On récupère le type de requête envoyée, i.e. GET, POST, PUT, DELETE
+                $request_method = $_SERVER["REQUEST_METHOD"];
+
+                // En instanciant la classe TaskController, et selon la méthode, on executera la requête demandée
+                $directive_controller = new TaskController($connection, $request_method, $id, $order);
+
                 break;
 
             case "tasksOfList":
-                $res = directive($uri[3], $id, $order);
+                $res = fct($uri[3], $uri[4], $id, $order);
                 $id = $res[0];
                 $order = $res[1];
+
+                // On récupère le type de requête envoyée, i.e. GET, POST, PUT, DELETE
+                $request_method = $_SERVER["REQUEST_METHOD"];
+
+                // En instanciant la classe TaskOfListController, et selon la méthode, on executera la requête demandée
+                $directive_controller = new TaskOfListController($connection, $request_method, $id, $order);
 
                 break;
 

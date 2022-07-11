@@ -1,4 +1,5 @@
 <?php
+
     /**
      * Classe relative à une liste. On aura donc accès aux différentes caractéristques d'une liste.
      */

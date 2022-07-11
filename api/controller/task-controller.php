@@ -1,6 +1,6 @@
 <?php
 
-    class ListeController {
+    class TaskController {
 
         // --------------------
         // Déclaration des attributs
@@ -8,12 +8,12 @@
 
         /** La méthode relative à la requête, i.e. GET, POST, ... */
         private $request_method;
-        /** Un id de liste */
+        /** Un id d'une tache */
         private $id;
-        /** L'ordre de tri d'un tableau de liste */
+        /** L'ordre de tri d'un tableau de taches */
         private $order;
-        /** Une instance de la classe ListeManager */
-        private $list_manager;
+        /** Une instance de la classe TaskManager */
+        private $task_manager;
 
         // --------------------
         // Constructeur
@@ -23,7 +23,7 @@
             $this->request_method = $request_method;
             $this->id = $id;
             $this->order = $order;
-            $this->list_manager = new ListeManager($db);
+            $this->task_manager = new TaskManager($db);
         }
 
         // --------------------
@@ -69,55 +69,55 @@
         }
 
         /**
-         * Méthode permettant de récupérer toutes les listes présentes dans la BdD.
+         * Méthode permettant de récupérer toutes les taches présentes dans la BdD.
          * 
          * @return (string|false)[]
          */
         private function get_all() {
             if ($this->order) {
-                // On récupère l'entièreté des listes triée dans l'ordre décroissant
-                $lists = $this->list_manager->get_all($this->order);
+                // On récupère l'entièreté des taches triée dans l'ordre décroissant
+                $tasks = $this->task_manager->get_all($this->order);
             } else {
-                // On récupère l'entièreté des listes
-                $lists = $this->list_manager->get_all();
+                // On récupère l'entièreté des taches
+                $tasks = $this->task_manager->get_all();
             }
 
             // Si tout va bien, on notifie que tout s'est bien passé
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
 
-            // Le corps de la réponse prends le json contenant toutes les listes
-            $response['body'] = json_encode($lists);
+            // Le corps de la réponse prends le json contenant toutes les taches
+            $response['body'] = json_encode($tasks);
 
             // On retourne la réponse donnée
             return $response;
         }
 
         /**
-         * Méthode permettant de récupérer une liste dans la base de données à l'aide de son id
+         * Méthode permettant de récupérer une tache dans la base de données à l'aide de son id
          * 
-         * @param int $id L'id de la liste que l'on souhaite trouver
+         * @param int $id L'id de la tache que l'on souhaite trouver
          * @return (string|null)[]|(string|false)[]
          */
         private function get_by_id($id) {
-            // On récupère la liste ayant l'id correspondant
-            $list = $this->list_manager->get($id);
+            // On récupère la tache ayant l'id correspondant
+            $task = $this->task_manager->get($id);
 
-            // Si aucune liste ne correspond à l'id entré, on renvoie que la requête n'a rien donné.
-            if (!$list) {
+            // Si aucune tache ne correspond à l'id entré, on renvoie que la requête n'a rien donné.
+            if (!$task) {
                 return $this->not_found_query();
             }
 
             // Si tout va bien, on notifie que tout s'est bien passé
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
 
-            // Le corps de la réponse prends le json contenant tous les listes
-            $response['body'] = json_encode($list);
+            // Le corps de la réponse prends le json contenant tous les taches
+            $response['body'] = json_encode($task);
 
             return $response;
         }
 
         /** 
-         * Méthode permettant d'ajouter un liste à la base de données 
+         * Méthode permettant d'ajouter un tache à la base de données 
          * 
          * @return (string|false)[]|(string|null)[]
          */
@@ -132,14 +132,17 @@
 
             // On récupère les informations valides pour l'ajout
             $id = $input["id"];
-            $label = $input["label"];
-            $id_group = $input['id_group'];
+            $title = $input["title"];
+            $description = $input['description'];
+            $deadline = $input['deadline'];
+            $is_complete = $input['is_complete'];
+            $id_list = $input['id_list'];
 
-            // On instancie une nouvelle liste
-            $list = new Liste($id, $label, $id_group);
+            // On instancie une nouvelle tache
+            $task = new Task($id, $title, $description, $deadline, $is_complete, $id_list);
 
-            // On insère la liste à la BdD
-            $this->list_manager->insert($list);
+            // On insère la tache à la BdD
+            $this->task_manager->insert($task);
 
             // On informe que tout s'est bien passé
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
@@ -151,17 +154,17 @@
         }
 
         /**
-         * Méthode permettant de mettre à jour un liste dans la base de données
+         * Méthode permettant de mettre à jour un tache dans la base de données
          * 
-         * @param int $id L'id de la liste que l'on souhaite mettre à jour
+         * @param int $id L'id de la tache que l'on souhaite mettre à jour
          * @return (string|null)[]|(string|false)[]
          */
         private function update($id) {
-            // On récupère la liste qu'il faut mettre à jour
-            $list = $this->list_manager->get($id);
+            // On récupère la tache qu'il faut mettre à jour
+            $task = $this->task_manager->get($id);
 
-            // Si on ne trouve pas de liste correspondant à l'id entré on fait savoir que la requête n'a pas été trouvée
-            if (!$list) {
+            // Si on ne trouve pas de tache correspondant à l'id entré on fait savoir que la requête n'a pas été trouvée
+            if (!$task) {
                 return $this->not_found_query();
             }
 
@@ -174,14 +177,17 @@
             }
 
             // On récupère les informations valides pour l'ajout
-            $label = $input["label"];
-            $id_group = $input['id_group'];
+            $title = $input["title"];
+            $description = $input['description'];
+            $deadline = $input['deadline'];
+            $is_complete = $input['is_complete'];
+            $id_list = $input['id_list'];
 
-            // On instancie une nouvelle liste
-            $list = new Liste($id, $label, $id_group);
+            // On instancie une nouvelle tache
+            $task = new Task($id, $title, $description, $deadline, $is_complete, $id_list);
 
-            // On met à jour la liste
-            $this->list_manager->update($list);
+            // On met à jour la tache
+            $this->task_manager->update($task);
 
             // On informe que tout s'est bien passé
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
@@ -193,22 +199,22 @@
         }
 
         /**
-         * Méthode permettant de supprimer une liste de la base de données
+         * Méthode permettant de supprimer une tache de la base de données
          * 
-         * @param int $id L'id de la liste que l'on souhaite supprimer
+         * @param int $id L'id de la tache que l'on souhaite supprimer
          * @return (string|null)[]
          */
         private function delete($id) {
-            // On récupère le liste qu'il faut mettre à jour
-            $list = $this->list_manager->get($id);
+            // On récupère le tache qu'il faut mettre à jour
+            $task = $this->task_manager->get($id);
 
-            // Si on ne trouve pas de liste correspondant à l'id entré on fait savoir que la requête n'a pas été trouvée
-            if (!$list) {
+            // Si on ne trouve pas de tache correspondant à l'id entré on fait savoir que la requête n'a pas été trouvée
+            if (!$task) {
                 return $this->not_found_query();
             }
 
-            // On supprime la liste 
-            $this->list_manager->delete($list);
+            // On supprime la tache 
+            $this->task_manager->delete($task);
 
             // On informe que tout s'est bien passé
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
@@ -220,13 +226,13 @@
         }
 
         /**
-         * Méthode permettant de vérifier qu'une liste est valide, i.e. les données fournies par l'utilisateur sont correctes.
+         * Méthode permettant de vérifier qu'une tache est valide, i.e. les données fournies par l'utilisateur sont correctes.
          * 
          * @param mixed $input Les informations fournies par l'utilisateur
          * @return bool
          */
         private function is_valid($input) {
-            return isset($input['id']) && isset($input['label']) && isset($input['id_group']);
+            return isset($input['id']) && isset($input['title']) && isset($input['description']) && isset($input['deadline']) && isset($input['is_complete']) && isset($input['id_list']);
         }
 
         /**

@@ -1,5 +1,8 @@
 <?php
 
+    /**
+     * Classe relative à un groupe. On aura donc accès aux différentes caractéristques d'un groupe.
+     */
     class Group implements JsonSerializable {
 
         // ----------------
